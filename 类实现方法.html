@@ -1,0 +1,119 @@
+// 类实现方法
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #list {
+            border: 1px solid #333333;;
+            overflow-y: scroll;
+        }
+
+        .listBox {
+            border: 1px solid #00B7FF;
+        }
+    </style>
+</head>
+<body>
+<div id="list"></div>
+</body>
+<script>
+    /*
+    * 配置项:
+    * el: 钩子
+    * data: 所有列表项
+    * viewH: 列表高度
+    * itemH: 每项高度
+    * list: 当前展示项
+    * showNum: 一次展示多少个
+    *
+    * */
+    class List {
+        constructor(opt) {
+            this.el = opt.el;
+            this.data = opt.data;
+            this.viewH = opt.viewH;
+            this.itemH = opt.itemH;
+            this.totalH = this.data.length * this.itemH + 'px';
+            this.list = [];
+            this.offsetY = 0;
+            this.showNum = 0;
+            this.lastTime = new Date().getTime();
+
+            this.el.style.height = this.viewH + 'px';
+        }
+
+        init() {
+            this.composeDom();
+            this.initData();
+            this.bindEvent();
+        }
+
+        composeDom() {
+            // 建立dom结构
+            let totalBox = document.createElement('div'),
+                listBox = document.createElement('div');
+            totalBox.className = 'totalBox';
+            totalBox.style.height = this.totalH;
+            listBox.className = 'listBox';
+            totalBox.append(listBox);
+            this.el.append(totalBox);
+            this.totalBox = totalBox;
+            this.listBox = listBox;
+        }
+
+        initData() {
+            // 初始化列表
+            this.showNum = Math.floor(this.viewH / this.itemH) + 4;
+            this.list = this.data.slice(0, this.showNum);
+            this.createByList(this.list);
+
+        }
+
+        createByList(list) {
+            this.listBox.innerText = '';
+            let fragment = document.createDocumentFragment();
+            for (let i = 0; i < this.showNum; i++) {
+                let div = document.createElement('div');
+                div.style.height = this.itemH + 'px';
+                div.innerText = list[i];
+                fragment.append(div);
+            }
+            this.listBox.append(fragment);
+        }
+
+        bindEvent() {
+            this.el.addEventListener('scroll', this.handleScroll.bind(this), false);
+        }
+
+        handleScroll(e) {
+            if (new Date().getTime() - this.lastTime > 20) {
+                let scrollTop = e.target.scrollTop,
+                    prevNum = Math.floor(scrollTop / this.itemH);
+                this.offsetY = scrollTop - (scrollTop % this.itemH);
+                this.list = this.data.slice(prevNum, prevNum + this.showNum);
+                this.createByList(this.list);
+                this.listBox.style.transform = `translateY(${this.offsetY}px)`
+                this.lastTime = new Date().getTime();
+            }
+
+        }
+    }
+
+
+    let data = [];
+    for (let i = 0; i < 999; i++) {
+        data.push(i + 1);
+    }
+
+
+// 实例进行挂载
+    new List({
+        el: document.getElementById('list'),
+        data,
+        viewH: 600,
+        itemH: 40
+    }).init();
+</script>
+</html>
